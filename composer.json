@@ -1,0 +1,22 @@
+{
+    "name": "frockdev/prometheus",
+    "description": "Prometheus package for Laravel and frock.dev",
+    "autoload": {
+        "psr-4": {
+            "FrockDev\\Prometheus\\": "src/"
+        }
+    },
+    "require": {
+        "promphp/prometheus_client_php": "^2.8",
+        "frock-dev/tools-for-laravel": "^1.0|dev-main"
+    },
+    "require-dev": {
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "FrockDev\\Prometheus\\FrockPrometheusProvider"
+            ]
+        }
+    }
+}
