@@ -1,8 +1,10 @@
 <?php
 
-namespace FrockDev\ToolsForLaravel\Swow\Processes;
+namespace FrockDev\Prometheus\Processes;
 
+use FrockDev\ToolsForLaravel\Annotations\Process;
 use FrockDev\ToolsForLaravel\Swow\Co\Co;
+use FrockDev\ToolsForLaravel\Swow\Processes\AbstractProcess;
 use Prometheus\CollectorRegistry;
 use Prometheus\RenderTextFormat;
 use Swow\CoroutineException;
@@ -12,6 +14,7 @@ use Swow\Psr7\Server\Server;
 use Swow\Socket;
 use Swow\SocketException;
 
+#[Process(name: 'prometheus-server')]
 class PrometheusHttpProcess extends AbstractProcess
 {
 

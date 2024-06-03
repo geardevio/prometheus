@@ -1,15 +1,18 @@
 <?php
 
-namespace FrockDev\ToolsForLaravel\Swow\Processes;
+namespace FrockDev\Prometheus\Processes;
 
+use FrockDev\ToolsForLaravel\Annotations\Process;
 use FrockDev\ToolsForLaravel\BaseMetrics\GCCyclesCollectedMetric;
 use FrockDev\ToolsForLaravel\BaseMetrics\MemoryRAMGaugeSimpleMetric;
 use FrockDev\ToolsForLaravel\Swow\Co\Co;
 use FrockDev\ToolsForLaravel\Swow\ContextStorage;
 use FrockDev\ToolsForLaravel\Swow\Liveness\Liveness;
+use FrockDev\ToolsForLaravel\Swow\Processes\AbstractProcess;
 use Prometheus\CollectorRegistry;
 use Swow\Coroutine;
 
+#[Process(name: 'system-metrics')]
 class SystemMetricsProcess extends AbstractProcess
 {
 
