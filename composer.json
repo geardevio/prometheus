@@ -8,7 +8,7 @@
     },
     "require": {
         "promphp/prometheus_client_php": "^2.8",
-        "frock-dev/tools-for-laravel": "^1.0|dev-main"
+        "frock-dev/tools-for-laravel": "^0.2|dev-main"
     },
     "require-dev": {
     },
