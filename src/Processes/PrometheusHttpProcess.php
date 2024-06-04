@@ -5,6 +5,7 @@ namespace FrockDev\Prometheus\Processes;
 use FrockDev\ToolsForLaravel\Annotations\Process;
 use FrockDev\ToolsForLaravel\Swow\Co\Co;
 use FrockDev\ToolsForLaravel\Swow\Processes\AbstractProcess;
+use Illuminate\Support\Facades\Log;
 use Prometheus\CollectorRegistry;
 use Prometheus\RenderTextFormat;
 use Swow\CoroutineException;
@@ -38,6 +39,7 @@ class PrometheusHttpProcess extends AbstractProcess
 
         $server = new Server(Socket::TYPE_TCP);
         $server->bind($host, $port, $bindFlag)->listen();
+        Log::info('Prometheus HTTP server is starting...');
         Co::define($this->name)->charge(function (Server $server, CollectorRegistry $registry) {
             while (true) {
                 try {
