@@ -7,6 +7,7 @@ use GearDev\Core\ContextStorage\ContextStorage;
 use GearDev\Coroutines\Co\CoFactory;
 use GearDev\Processes\Attributes\Process;
 use GearDev\Processes\ProcessesManagement\AbstractProcess;
+use Illuminate\Support\Facades\Log;
 use Prometheus\CollectorRegistry;
 use Swow\Coroutine;
 
@@ -20,6 +21,7 @@ class SystemMetricsProcess extends AbstractProcess
 
     protected function run(): bool
     {
+        Log::info('System metrics process is starting...');
         $allowedMemoryUsage = env('ALLOWED_MEMORY_USAGE', 200);
         $counterName = 'coroutine_count';
         CoFactory::createCo($this->getName() . '_' . $counterName)
