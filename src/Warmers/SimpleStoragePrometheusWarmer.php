@@ -2,20 +2,19 @@
 
 namespace GearDev\Prometheus\Warmers;
 
+use GearDev\Core\Attributes\Warmer;
+use GearDev\Core\Warmers\WarmerInterface;
 use Illuminate\Foundation\Application;
+use Prometheus\CollectorRegistry;
 use Prometheus\Storage\InMemory;
-
-class SimpleStoragePrometheusWarmer implements \GearDev\Core\Warmers\WarmerInterface
+#[Warmer]
+class SimpleStoragePrometheusWarmer implements WarmerInterface
 {
     public function warm(Application $app): void
     {
-        $classes = [
-            InMemory::class,
-        ];
-        foreach ($classes as $service) {
-            if (is_string($service) && $app->bound($service)) {
-                $app->make($service);
-            }
-        }
+        $collectorRegistry = new CollectorRegistry(app()->make(InMemory::class));
+        app()->singleton(CollectorRegistry::class, function() use ($collectorRegistry) {
+            return $collectorRegistry;
+        });
     }
 }
