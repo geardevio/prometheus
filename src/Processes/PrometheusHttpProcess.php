@@ -1,10 +1,10 @@
 <?php
 
-namespace FrockDev\Prometheus\Processes;
+namespace GearDev\Prometheus\Processes;
 
-use FrockDev\ToolsForLaravel\Annotations\Process;
-use FrockDev\ToolsForLaravel\Swow\Co\Co;
-use FrockDev\ToolsForLaravel\Swow\Processes\AbstractProcess;
+use GearDev\Coroutines\Co\CoFactory;
+use GearDev\Processes\Attributes\Process;
+use GearDev\Processes\ProcessesManagement\AbstractProcess;
 use Illuminate\Support\Facades\Log;
 use Prometheus\CollectorRegistry;
 use Prometheus\RenderTextFormat;
@@ -15,7 +15,7 @@ use Swow\Psr7\Server\Server;
 use Swow\Socket;
 use Swow\SocketException;
 
-#[Process(name: 'prometheus-server')]
+#[Process(processName: 'prometheus-server', serverOnly: true)]
 class PrometheusHttpProcess extends AbstractProcess
 {
 
@@ -24,11 +24,6 @@ class PrometheusHttpProcess extends AbstractProcess
     public function __construct()
     {
         $this->registry = app()->make(CollectorRegistry::class);
-    }
-
-    private function renderMetrics() {
-        $renderer = new RenderTextFormat();
-        return $renderer->render($this->registry->getMetricFamilySamples());
     }
 
     protected function run(): bool
@@ -40,12 +35,12 @@ class PrometheusHttpProcess extends AbstractProcess
         $server = new Server(Socket::TYPE_TCP);
         $server->bind($host, $port, $bindFlag)->listen();
         Log::info('Prometheus HTTP server is starting...');
-        Co::define($this->name)->charge(function (Server $server, CollectorRegistry $registry) {
+        CoFactory::createCo($this->name)->charge(function (Server $server, CollectorRegistry $registry) {
             while (true) {
                 try {
                     $connection = null;
                     $connection = $server->acceptConnection();
-                    Co::define('prometheusHandler')->charge(static function () use ($connection, $registry): void {
+                    CoFactory::createCo('prometheusHandler')->charge(static function () use ($connection, $registry): void {
                         try {
                             while (true) {
                                 $request = null;
@@ -83,6 +78,6 @@ class PrometheusHttpProcess extends AbstractProcess
                 }
             }
         })->args($server, $this->registry)->runWithClonedDiContainer();
-        return false;
+        return true;
     }
 }

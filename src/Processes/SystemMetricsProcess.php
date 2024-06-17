@@ -1,18 +1,16 @@
 <?php
 
-namespace FrockDev\Prometheus\Processes;
+namespace GearDev\Prometheus\Processes;
 
-use FrockDev\ToolsForLaravel\Annotations\Process;
-use FrockDev\ToolsForLaravel\BaseMetrics\GCCyclesCollectedMetric;
-use FrockDev\ToolsForLaravel\BaseMetrics\MemoryRAMGaugeSimpleMetric;
-use FrockDev\ToolsForLaravel\Swow\Co\Co;
-use FrockDev\ToolsForLaravel\Swow\ContextStorage;
-use FrockDev\ToolsForLaravel\Swow\Liveness\Liveness;
-use FrockDev\ToolsForLaravel\Swow\Processes\AbstractProcess;
+
+use GearDev\Core\ContextStorage\ContextStorage;
+use GearDev\Coroutines\Co\CoFactory;
+use GearDev\Processes\Attributes\Process;
+use GearDev\Processes\ProcessesManagement\AbstractProcess;
 use Prometheus\CollectorRegistry;
 use Swow\Coroutine;
 
-#[Process(name: 'system-metrics')]
+#[Process(processName: 'system-metrics')]
 class SystemMetricsProcess extends AbstractProcess
 {
 
@@ -24,53 +22,52 @@ class SystemMetricsProcess extends AbstractProcess
     {
         $allowedMemoryUsage = env('ALLOWED_MEMORY_USAGE', 200);
         $counterName = 'coroutine_count';
-        Co::define($this->getName() . '_' . $counterName)
+        CoFactory::createCo($this->getName() . '_' . $counterName)
             ->charge(function () use ($counterName) {
                 $coroutineGauge = $this->registry->getOrRegisterGauge(
+                    config('gear.prometheus.namespace', 'gear'),
                     $counterName,
-                    'coroutine_count',
                     'coroutine_count');
                 while (true) {
-                    Liveness::setLiveness('coroutine_count_control', 200, 'controlling', Liveness::MODE_EACH);
                     $coroutineGauge->set(Coroutine::count());
                     sleep(1);
                 }
             })->runWithClonedDiContainer();
 
         $counterName = 'contextual_storage_count';
-        Co::define($this->getName() . '_' . $counterName)
+        CoFactory::createCo($this->getName() . '_' . $counterName)
             ->charge(function () use ($counterName) {
                 $coroutineGauge = $this->registry->getOrRegisterGauge(
+                    config('gear.prometheus.namespace', 'gear'),
                     $counterName,
-                    'contextual_storage_count',
                     'contextual_storage_count');
                 while (true) {
-                    Liveness::setLiveness('contextual_storage_count_control', 200, 'controlling', Liveness::MODE_EACH);
                     $coroutineGauge->set(ContextStorage::getStorageCountForMetric());
                     sleep(1);
                 }
             })->runWithClonedDiContainer();
 
         $counterName = 'di_containers_count';
-        Co::define($this->getName() . '_' . $counterName)
+        CoFactory::createCo($this->getName() . '_' . $counterName)
             ->charge(function () use ($counterName) {
                 $coroutineGauge = $this->registry->getOrRegisterGauge(
+                    config('gear.prometheus.namespace', 'gear'),
                     $counterName,
-                    'containers_count',
                     'containers_count');
                 while (true) {
-                    Liveness::setLiveness('containers_count_control', 200, 'controlling', Liveness::MODE_EACH);
                     $coroutineGauge->set(ContextStorage::getContainersCountForMetric());
                     sleep(1);
                 }
             })->runWithClonedDiContainer();
 
         $counterName = 'memory_usage';
-        Co::define($this->getName() . '_' . $counterName)
+        CoFactory::createCo($this->getName() . '_' . $counterName)
             ->charge(function () use ($counterName) {
-                $coroutineGauge = MemoryRAMGaugeSimpleMetric::declare();
                 while (true) {
-                    Liveness::setLiveness('memory_usage_control', 200, 'controlling', Liveness::MODE_EACH);
+                    $coroutineGauge = $this->registry->getOrRegisterGauge(
+                        config('gear.prometheus.namespace', 'gear'),
+                        'memory_usage',
+                        'memory_usage');
                     $coroutineGauge->set(memory_get_usage() / 1024 / 1024);
                     sleep(1);
                 }
@@ -78,11 +75,13 @@ class SystemMetricsProcess extends AbstractProcess
 
         if (function_exists('gc_enabled') && gc_enabled()) {
             $counterName = 'gc_cycles_collected_count';
-            Co::define($this->getName() . '_' . $counterName)
+            CoFactory::createCo($this->getName() . '_' . $counterName)
                 ->charge(function () use ($counterName, $allowedMemoryUsage) {
-                    $coroutineGauge = GCCyclesCollectedMetric::declare();
                     while (true) {
-                        Liveness::setLiveness('gc_control', 200, 'controlling', Liveness::MODE_EACH);
+                        $coroutineGauge = $this->registry->getOrRegisterGauge(
+                            config('gear.prometheus.namespace', 'gear'),
+                            $counterName,
+                            'gc_cycles_collected_count');
                         if (memory_get_usage() / 1024 / 1024 > $allowedMemoryUsage) {
                             $cycles = gc_collect_cycles();
                             $coroutineGauge->set($cycles);
@@ -95,7 +94,7 @@ class SystemMetricsProcess extends AbstractProcess
         }
 
         if (env('EXIT_ON_OOM')==1) {
-            Co::define($this->getName() . '_OOM_EXITER')
+            CoFactory::createCo($this->getName() . '_OOM_EXITER')
                 ->charge(function () use ($allowedMemoryUsage) {
                     while (true) {
                         if (memory_get_usage() / 1024 / 1024 > $allowedMemoryUsage) {
@@ -106,6 +105,6 @@ class SystemMetricsProcess extends AbstractProcess
                 })->runWithClonedDiContainer();
         }
 
-        return false;
+        return true;
     }
 }
