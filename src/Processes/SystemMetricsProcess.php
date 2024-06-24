@@ -100,7 +100,9 @@ class SystemMetricsProcess extends AbstractProcess
                 ->charge(function () use ($allowedMemoryUsage) {
                     while (true) {
                         if (memory_get_usage() / 1024 / 1024 > $allowedMemoryUsage) {
-                            ContextStorage::getSystemChannel('exitChannel')->push(\Swow\Signal::TERM);
+                            echo 'OOM detected. Exiting...';
+                            exit(1);
+//                            ContextStorage::getSystemChannel('exitChannel')->push(\Swow\Signal::TERM);
                         }
                         sleep(30);
                     }
