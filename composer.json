@@ -8,17 +8,9 @@
     },
     "require": {
         "promphp/prometheus_client_php": "^2.8",
-        "geardev/coroutines": "^0.0",
-        "geardev/processes": "^0.0",
-        "swow/swow": "v1.5.2"
+        "geardev/coroutines": "^0.1",
+        "geardev/processes": "^0.1"
     },
     "require-dev": {
-    },
-    "extra": {
-        "laravel": {
-            "providers": [
-                "GearDev\\Prometheus\\GearPrometheusProvider"
-            ]
-        }
     }
 }
