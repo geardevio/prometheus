@@ -8,7 +8,6 @@
     },
     "require": {
         "promphp/prometheus_client_php": "^2.8",
-        "geardev/coroutines": "^0.1",
         "geardev/processes": "^0.1"
     },
     "require-dev": {
